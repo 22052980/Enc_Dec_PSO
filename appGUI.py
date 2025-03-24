@@ -51,18 +51,22 @@ def pso_optimize(image, num_particles=5, iterations=10, r=3.99):
     best_index = np.argmax(fitness_scores)
     return particles[best_index]
 
-# Streamlit UI
-st.set_page_config(page_title="PSO Image Encryption", layout="wide")
+# Streamlit UI Setup
+st.set_page_config(page_title="🔐 PSO Image Encryption", layout="wide")
 
-# Sidebar Navigation
-st.sidebar.header("Encryption Settings")
-num_particles = st.sidebar.slider("Number of Particles", 2, 10, 5)
-iterations = st.sidebar.slider("Iterations", 1, 20, 10)
-r_value = st.sidebar.slider("Logistic Map r-value", 3.5, 4.0, 3.99)
+# Sidebar Configuration
+st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Open_Lock.svg/1024px-Open_Lock.svg.png", width=100)
+st.sidebar.title("⚙️ Encryption Settings")
+st.sidebar.write("Adjust parameters before encryption.")
 
-# Main UI
-st.title("🔐 Image Encryption using Particle Swarm Optimization (PSO)")
+num_particles = st.sidebar.slider("🧩 Number of Particles", 2, 10, 5)
+iterations = st.sidebar.slider("🔄 Iterations", 1, 20, 10)
+r_value = st.sidebar.slider("⚡ Logistic Map r-value", 3.5, 4.0, 3.99)
 
+# Main UI Layout
+st.markdown("<h1 style='text-align: center;'>🔐 Image Encryption using PSO</h1>", unsafe_allow_html=True)
+
+# File Upload Section
 uploaded_file = st.file_uploader("📤 Upload an Image (JPG/PNG)", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
@@ -70,33 +74,31 @@ if uploaded_file is not None:
     image = np.array(image)
     image = cv2.resize(image, (256, 256))
 
-    # Show original image
-    st.image(image, caption="🖼️ Original Image", use_column_width=True)
+    col1, col2 = st.columns(2)
 
-    if st.button("🚀 Encrypt Image"):
-        with st.spinner("Encrypting... Please wait ⏳"):
+    with col1:
+        st.image(image, caption="🖼️ Original Image", use_column_width=True)
+
+    if st.button("🚀 Encrypt Image", use_container_width=True):
+        progress = st.progress(0)
+
+        with st.spinner("🔒 Encrypting... Please wait ⏳"):
+            for i in range(100):
+                progress.progress(i + 1)
+
             best_encrypted_image = pso_optimize(image, num_particles, iterations, r_value)
 
-            # Show encrypted image
+        with col2:
             st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_column_width=True)
 
-            # Convert image to downloadable format
-            img_pil = Image.fromarray(best_encrypted_image)
-            buf = io.BytesIO()
-            img_pil.save(buf, format="PNG")
-            byte_im = buf.getvalue()
+        # Convert image to downloadable format
+        img_pil = Image.fromarray(best_encrypted_image)
+        buf = io.BytesIO()
+        img_pil.save(buf, format="PNG")
+        byte_im = buf.getvalue()
 
-            st.download_button(label="📥 Download Encrypted Image",
-                               data=byte_im,
-                               file_name="encrypted_image.png",
-                               mime="image/png")
-
-    # Show Algorithm Explanation
-    with st.expander("ℹ️ How It Works"):
-        st.write("""
-        - **Particle Swarm Optimization (PSO)** is used for optimizing encryption.
-        - The **logistic map** generates chaotic sequences to perform encryption.
-        - Encrypted images have **high entropy** and **low correlation** to prevent attacks.
-        - The system **optimizes encryption strength** based on entropy and pixel randomness.
-        """)
-
+        st.download_button(label="📥 Download Encrypted Image",
+                           data=byte_im,
+                           file_name="encrypted_image.png",
+                           mime="image/png",
+                           use_container_width=True)
