@@ -69,56 +69,47 @@ st.set_page_config(page_title="🔐 PSO Image Encryption & Decryption", layout="
 
 st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Open_Lock.svg/1024px-Open_Lock.svg.png", width=100)
 st.sidebar.title("⚙️ Encryption Settings")
-st.sidebar.write("Adjust parameters before encryption.")
 
 # User-defined parameters for PSO
-tnum_particles = st.sidebar.slider("🧩 Number of Particles", 2, 10, 5)
+num_particles = st.sidebar.slider("🧩 Number of Particles", 2, 10, 5)
 iterations = st.sidebar.slider("🔄 Iterations", 1, 20, 10)
 r_value = st.sidebar.slider("⚡ Logistic Map r-value", 3.5, 4.0, 3.99)
 
-st.markdown("<h1 style='text-align: center;'>🔐 Image Encryption & Decryption using PSO</h1>", unsafe_allow_html=True)
+st.markdown("""
+    <h1 style='text-align: center;'>🔐 Image Encryption & Decryption using PSO</h1>
+""", unsafe_allow_html=True)
 
 # File upload section
 uploaded_file = st.file_uploader("📤 Upload an Image (JPG/PNG)", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
-    # Convert uploaded image to grayscale
     image = Image.open(uploaded_file).convert("L")
     image = np.array(image)
     image = cv2.resize(image, (256, 256))
 
-    col1, col2, col3 = st.columns(3)
-
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         st.image(image, caption="🖼️ Original Image", use_column_width=True)
 
-    # Encryption button
-    if st.button("🚀 Encrypt Image", use_container_width=True):
-        progress = st.progress(0)
+    with st.expander("🔒 Encrypt Image", expanded=True):
+        if st.button("🚀 Encrypt", use_container_width=True):
+            progress = st.progress(0)
+            
+            with st.spinner("🔒 Encrypting... Please wait ⏳"):
+                for i in range(100):
+                    progress.progress(i + 1)
+                best_encrypted_image, best_x0 = pso_optimize(image, num_particles, iterations, r_value)
+                progress.progress(100)
 
-        with st.spinner("🔒 Encrypting... Please wait ⏳"):
-            for i in range(100):
-                progress.progress(i + 1)
+            with col2:
+                st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_column_width=True)
 
-            best_encrypted_image, best_x0 = pso_optimize(image, tnum_particles, iterations, r_value)
+            buf = io.BytesIO()
+            Image.fromarray(best_encrypted_image).save(buf, format="PNG")
+            st.download_button("📥 Download Encrypted Image", buf.getvalue(), "encrypted_image.png", "image/png", use_container_width=True)
 
-        with col2:
-            st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_column_width=True)
-
-        # Convert encrypted image for download
-        img_pil = Image.fromarray(best_encrypted_image)
-        buf = io.BytesIO()
-        img_pil.save(buf, format="PNG")
-        byte_im = buf.getvalue()
-
-        st.download_button(label="📥 Download Encrypted Image",
-                           data=byte_im,
-                           file_name="encrypted_image.png",
-                           mime="image/png",
-                           use_container_width=True)
-
-        # Decryption button
-        if st.button("🔓 Decrypt Image", use_container_width=True):
-            decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
-            with col3:
-                st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
+            with st.expander("🔓 Decrypt Image", expanded=True):
+                if st.button("🔓 Decrypt", use_container_width=True):
+                    decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
+                    with col3:
+                        st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
