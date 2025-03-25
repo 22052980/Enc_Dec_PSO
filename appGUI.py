@@ -100,7 +100,7 @@ if uploaded_file is not None:
             for i in range(100):
                 progress.progress(i + 1)
 
-            best_encrypted_image, best_x0 = pso_optimize(image, num_particles, iterations, r_value)
+            best_encrypted_image, best_x0 = pso_optimize(image, tnum_particles, iterations, r_value)
 
         with col2:
             st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_column_width=True)
