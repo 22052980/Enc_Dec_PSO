@@ -89,7 +89,7 @@ if uploaded_file is not None:
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        st.image(image, caption="🖼️ Original Image", use_column_width=True)
+        st.image(image, caption="🖼️ Original Image", use_container_width=True)
 
     best_encrypted_image, best_x0 = None, None
     with st.expander("🔒 Encrypt Image", expanded=True):
@@ -103,7 +103,7 @@ if uploaded_file is not None:
                 progress.progress(100)
 
             with col2:
-                st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_column_width=True)
+                st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_container_width=True)
 
             buf = io.BytesIO()
             Image.fromarray(best_encrypted_image).save(buf, format="PNG")
@@ -114,4 +114,4 @@ if uploaded_file is not None:
             if st.button("🔓 Decrypt", use_container_width=True):
                 decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
                 with col3:
-                    st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
+                    st.image(decrypted_image, caption="🔓 Decrypted Image", use_container_width=True)
