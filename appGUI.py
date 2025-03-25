@@ -108,26 +108,23 @@ if uploaded_file is not None:
         st.image(image, caption="🖼️ Original Image", use_container_width=True)
 
     best_encrypted_image, best_x0 = None, None
-    with st.expander("🔒 Encrypt Image", expanded=True):
-        if st.button("🚀 Encrypt", use_container_width=True):
-            progress = st.progress(0)
-            
-            with st.spinner("🔒 Encrypting... Please wait ⏳"):
-                for i in range(100):
-                    progress.progress(i + 1)
-                best_encrypted_image, best_x0 = pso_optimize(image, num_particles, iterations, r_value)
-                progress.progress(100)
+    if st.button("🚀 Encrypt", use_container_width=True):
+        with st.spinner("🔒 Encrypting... Please wait ⏳"):
+            best_encrypted_image, best_x0 = pso_optimize(image, num_particles, iterations, r_value)
 
-            with col2:
-                st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_container_width=True)
+        with col2:
+            st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_container_width=True)
 
-            buf = io.BytesIO()
-            Image.fromarray(best_encrypted_image).save(buf, format="PNG")
-            st.download_button("📥 Download Encrypted Image", buf.getvalue(), "encrypted_image.png", "image/png", use_container_width=True)
+        buf = io.BytesIO()
+        Image.fromarray(best_encrypted_image).save(buf, format="PNG")
+        st.download_button("📥 Download Encrypted Image", buf.getvalue(), "encrypted_image.png", "image/png", use_container_width=True)
     
     if best_encrypted_image is not None and best_x0 is not None:
-        with st.expander("🔓 Decrypt Image", expanded=True):
-            if st.button("🔓 Decrypt", use_container_width=True):
-                decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
-                with col3:
-                    st.image(decrypted_image, caption="🔓 Decrypted Image", use_container_width=True)
+        if st.button("🔓 Decrypt", use_container_width=True):
+            decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
+            with col3:
+                st.image(decrypted_image, caption="🔓 Decrypted Image", use_container_width=True)
+            
+            buf = io.BytesIO()
+            Image.fromarray(decrypted_image).save(buf, format="PNG")
+            st.download_button("📥 Download Decrypted Image", buf.getvalue(), "decrypted_image.png", "image/png", use_container_width=True)
