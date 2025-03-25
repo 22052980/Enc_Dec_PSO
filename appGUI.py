@@ -91,6 +91,7 @@ if uploaded_file is not None:
     with col1:
         st.image(image, caption="🖼️ Original Image", use_column_width=True)
 
+    best_encrypted_image, best_x0 = None, None
     with st.expander("🔒 Encrypt Image", expanded=True):
         if st.button("🚀 Encrypt", use_container_width=True):
             progress = st.progress(0)
@@ -107,10 +108,10 @@ if uploaded_file is not None:
             buf = io.BytesIO()
             Image.fromarray(best_encrypted_image).save(buf, format="PNG")
             st.download_button("📥 Download Encrypted Image", buf.getvalue(), "encrypted_image.png", "image/png", use_container_width=True)
-
-            with st.expander("🔓 Decrypt Image", expanded=True):
-                decrypt_button = st.button("🔓 Decrypt", use_container_width=True)
-                if decrypt_button:
-                    decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
-                    with col3:
-                        st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
+    
+    if best_encrypted_image is not None and best_x0 is not None:
+        with st.expander("🔓 Decrypt Image", expanded=True):
+            if st.button("🔓 Decrypt", use_container_width=True):
+                decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
+                with col3:
+                    st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
