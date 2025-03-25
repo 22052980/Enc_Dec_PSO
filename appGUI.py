@@ -109,8 +109,8 @@ if uploaded_file is not None:
             st.download_button("📥 Download Encrypted Image", buf.getvalue(), "encrypted_image.png", "image/png", use_container_width=True)
 
             with st.expander("🔓 Decrypt Image", expanded=True):
-                if st.button("🔓 Decrypt", use_container_width=True):
+                decrypt_button = st.button("🔓 Decrypt", use_container_width=True)
+                if decrypt_button:
                     decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
                     with col3:
                         st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
-
