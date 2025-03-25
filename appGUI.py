@@ -22,38 +22,54 @@ def fitness_function(encrypted_image):
     return entropy - abs(correlation)
 
 # Particle Swarm Optimization (PSO) based encryption process
-def pso_optimize(image, num_particles=5, iterations=10, r=3.99):
+def pso_optimize(image, num_particles=5, iterations=10, r=3.99, w=0.7, c1=1.5, c2=1.5):
     M, N = image.shape
     num_pixels = M * N
-    particles = []
+    particles = [random.uniform(0, 1) for _ in range(num_particles)]
+    velocities = [random.uniform(-0.1, 0.1) for _ in range(num_particles)]
     fitness_scores = []
+    personal_best = particles[:]
+    personal_best_scores = []
+    global_best = None
+    global_best_score = -np.inf
 
-    # Generate initial encrypted images using chaotic sequences
-    for _ in range(num_particles):
-        x0 = random.uniform(0, 1)
-        chaotic_seq = logistic_map(r, x0, num_pixels)
+    for i in range(num_particles):
+        chaotic_seq = logistic_map(r, particles[i], num_pixels)
         chaotic_seq = (chaotic_seq * 255).astype(np.uint8).reshape(M, N)
         encrypted_image = cv2.bitwise_xor(image, chaotic_seq)
+        fitness = fitness_function(encrypted_image)
+        fitness_scores.append(fitness)
+        personal_best_scores.append(fitness)
 
-        particles.append((encrypted_image, x0))  # Store x0 for decryption
-        fitness_scores.append(fitness_function(encrypted_image))
+        if fitness > global_best_score:
+            global_best = particles[i]
+            global_best_score = fitness
 
-    # Iterate to improve encryption using fitness evaluation
     for _ in range(iterations):
         for i in range(num_particles):
-            new_x0 = random.uniform(0, 1)
-            chaotic_seq = logistic_map(r, new_x0, num_pixels)
+            velocities[i] = (w * velocities[i] +
+                             c1 * random.uniform(0, 1) * (personal_best[i] - particles[i]) +
+                             c2 * random.uniform(0, 1) * (global_best - particles[i]))
+            particles[i] += velocities[i]
+            particles[i] = max(0, min(1, particles[i]))
+
+            chaotic_seq = logistic_map(r, particles[i], num_pixels)
             chaotic_seq = (chaotic_seq * 255).astype(np.uint8).reshape(M, N)
-            new_encrypted_image = cv2.bitwise_xor(image, chaotic_seq)
+            encrypted_image = cv2.bitwise_xor(image, chaotic_seq)
+            fitness = fitness_function(encrypted_image)
 
-            new_fitness = fitness_function(new_encrypted_image)
+            if fitness > personal_best_scores[i]:
+                personal_best[i] = particles[i]
+                personal_best_scores[i] = fitness
 
-            if new_fitness > fitness_scores[i]:
-                particles[i] = (new_encrypted_image, new_x0)
-                fitness_scores[i] = new_fitness
+            if fitness > global_best_score:
+                global_best = particles[i]
+                global_best_score = fitness
 
-    best_index = np.argmax(fitness_scores)
-    return particles[best_index]
+    chaotic_seq = logistic_map(r, global_best, num_pixels)
+    chaotic_seq = (chaotic_seq * 255).astype(np.uint8).reshape(M, N)
+    best_encrypted_image = cv2.bitwise_xor(image, chaotic_seq)
+    return best_encrypted_image, global_best
 
 # Decryption process (XOR again with the same chaotic sequence)
 def decrypt_image(encrypted_image, x0, r):
