@@ -113,3 +113,4 @@ if uploaded_file is not None:
                     decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
                     with col3:
                         st.image(decrypted_image, caption="🔓 Decrypted Image", use_column_width=True)
+
