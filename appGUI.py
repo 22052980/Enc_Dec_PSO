@@ -107,16 +107,22 @@ if uploaded_file is not None:
     with col1:
         st.image(image, caption="🖼️ Original Image", use_container_width=True)
 
-    best_encrypted_image, best_x0 = None, None
     if st.button("🚀 Encrypt", use_container_width=True):
         with st.spinner("🔒 Encrypting... Please wait ⏳"):
             best_encrypted_image, best_x0 = pso_optimize(image, num_particles, iterations, r_value)
+        
+        st.session_state["encrypted_image"] = best_encrypted_image
+        st.session_state["encryption_key"] = best_x0
 
         with col2:
             st.image(best_encrypted_image, caption="🔒 Encrypted Image", use_container_width=True)
     
-    if best_encrypted_image is not None and best_x0 is not None:
+    if "encrypted_image" in st.session_state and "encryption_key" in st.session_state:
         if st.button("🔓 Decrypt", use_container_width=True):
-            decrypted_image = decrypt_image(best_encrypted_image, best_x0, r_value)
+            decrypted_image = decrypt_image(st.session_state["encrypted_image"], st.session_state["encryption_key"], r_value)
+            
+            # Store decrypted image in session state to ensure new image is generated on each click
+            st.session_state["decrypted_image"] = decrypted_image
+            
             with col3:
                 st.image(decrypted_image, caption="🔓 Decrypted Image", use_container_width=True)
